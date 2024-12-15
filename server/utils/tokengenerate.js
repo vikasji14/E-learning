@@ -10,13 +10,12 @@ export const generateToken = (res, user, message) => {
 
         res.cookie("token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV !== "development", // Secure in production
+            // secure: process.env.NODE_ENV !== "development", // Secure in production
+            secure: true,
             sameSite: "strict", // Prevent CSRF attacks
             maxAge: 24 * 60 * 60 * 1000 * 7, // 7 days
         });
         
-
-
         // Send the response with the token and user info
         return res.status(200).json({
             success: true,
