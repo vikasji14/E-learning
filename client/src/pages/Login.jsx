@@ -51,7 +51,6 @@ export function Login() {
         } else {
             toast.error(data.message)
         }
-        console.log(user)
     }
 
     const handleLogin = async (e) => {
@@ -62,7 +61,7 @@ export function Login() {
         const data = await loginUser(userData)
         if (data.success) {
             toast.success(data.message)
-            localStorage.setItem("token", data.token)
+            localStorage.setItem("token", data.token)           
             localStorage.setItem("name", data.user.name)
             localStorage.setItem("id", data.user._id)
             localStorage.setItem("role", data.user.role)
@@ -71,7 +70,9 @@ export function Login() {
             setIsLoading(false)
         } else {
             toast.error(data.message)
+            setIsLoading(false)
         }
+        setIsLoading(false)
     }
 
     return (

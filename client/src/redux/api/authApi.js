@@ -1,7 +1,5 @@
-
-
-// const url = "http://localhost:8080/api/v1"
-const url = 'https://e-learning-6ppv.onrender.com/api/v1'
+const url = import.meta.env.VITE_API_URL;
+const apiKey = import.meta.env.VITE_API_KEY;
 
 const token = localStorage.getItem('token');
 
@@ -11,6 +9,7 @@ export const registerUser = async (user) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                'api-key': apiKey,
             },
             body: JSON.stringify(user),
         });
@@ -27,6 +26,7 @@ export const loginUser = async (user) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                'api-key': apiKey ,
             },
             body: JSON.stringify(user),
         });
@@ -48,6 +48,7 @@ export const userLoggedOut = async () => {
             headers: {
                 "Content-Type": "application/json",
                 'Authorization': `Bearer ${token}`,
+                'api-key': apiKey ,
             },
         });
         const data = await response.json();
@@ -64,6 +65,7 @@ export const userProfile = async () => {
             headers: {
                 "content-Type": "application/json",
                 'Authorization': `Bearer ${token}`,
+                'api-key': apiKey ,
             },
         })
 
@@ -82,6 +84,7 @@ export const updateUser = async (formData) => {
             method: "PUT",
             headers: {
                 'Authorization': `Bearer ${token}`,
+                'api-key': apiKey ,
             },
             body:formData,
         })
@@ -100,6 +103,7 @@ export const updateBioChange = async (data) => {
             headers: {
                 'Content-Type': 'application/json',  // Set Content-Type to JSON
                 'Authorization': `Bearer ${token}`,
+                'api-key': apiKey ,
             },
             body:JSON.stringify(data),
         })
