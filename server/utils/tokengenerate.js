@@ -6,17 +6,6 @@ export const generateToken = (res, user, message) => {
         const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
             expiresIn: "30m",
         });
-        // Set the token as an HTTP-only cookie
-
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "lax", // Use lax for cross-origin requests
-            maxAge: 24 * 60 * 60 * 1000 * 7, // 7 days
-        });
-
-        
-        // Send the response with the token and user info
         return res.status(200).json({
             success: true,
             message:"Login Successful",
