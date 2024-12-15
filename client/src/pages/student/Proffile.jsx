@@ -64,7 +64,8 @@ const Profile = () => {
     setUpdateUserIsLoading(true);
     e.preventDefault()
     const data = { bio: bio }
-    await updateBioChange(data)
+    const res = await updateBioChange(data)
+    toast.success(res?.message)
     userData()
     setUpdateUserIsLoading(false)
   };
@@ -187,7 +188,7 @@ const Profile = () => {
                     </DialogDescription>
                   </DialogHeader>
                   <p className="text-sm text-muted-foreground">
-                    <Textarea onChange={(e) => setBio(e.target.value)} value={user?.bio} rows={5} />
+                    <Textarea onChange={(e) => setBio(e.target.value)} value={bio} rows={5} />
                   </p>
                   <DialogFooter>
                     <Button

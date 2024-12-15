@@ -108,10 +108,11 @@ export const login = async (req, res) => {
 
          // Extract IP address
          const ipAddress = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-
-         // Get location from GeoIP
-         const geo = geoip.lookup(ipAddress) || {};
-         const location = geo.city ? `${geo.city}, ${geo.region}, ${geo.country}` : "Unknown";
+        // Call the geolocation API using fetch
+        const geoResponse = await fetch(`http://ip-api.com/json/${ipAddress}?fields=city,region,country,zip`);
+        const geoData = await geoResponse.json();
+        const { city, region, country, zip } = geoData;
+        const location = city?`city: ${city},region: ${region},contry: ${country}, zip: ${zip}` : "Unknown";
  
          // Parse User-Agent header
          const agent = useragent.parse(req.headers["user-agent"]);
