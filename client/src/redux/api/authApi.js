@@ -1,7 +1,7 @@
 
 
-const url = "http://localhost:8080/api/v1"
-// const url = 'https://e-learning-6ppv.onrender.com/api/v1'
+// const url = "http://localhost:8080/api/v1"
+const url = 'https://e-learning-6ppv.onrender.com/api/v1'
 
 export const registerUser = async (user) => {
     try {
