@@ -10,7 +10,7 @@ export const generateToken = (res, user, message) => {
 
         res.cookie("token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production", // Only secure in production
+            secure: true,
             sameSite: "lax", // Use lax for cross-origin requests
             maxAge: 24 * 60 * 60 * 1000 * 7, // 7 days
         });
