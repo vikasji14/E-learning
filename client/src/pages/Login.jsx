@@ -22,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+import GoogleLoginPage from "./GoogleLoginPage"
 
 
 
@@ -50,7 +51,9 @@ export function Login() {
             setIsLoading(false)
         } else {
             toast.error(data.message)
+            setIsLoading(false)
         }
+        setIsLoading(false);
     }
 
     const handleLogin = async (e) => {
@@ -61,7 +64,7 @@ export function Login() {
         const data = await loginUser(userData)
         if (data.success) {
             toast.success(data.message)
-            localStorage.setItem("token", data.token)           
+            localStorage.setItem("token", data.token)
             localStorage.setItem("name", data.user.name)
             localStorage.setItem("id", data.user._id)
             localStorage.setItem("role", data.user.role)
@@ -74,6 +77,18 @@ export function Login() {
         }
         setIsLoading(false)
     }
+
+    // const responseGoogle = async (response) => {
+
+    //     try {
+    //         console.log(response)
+            
+    //     }
+    //     catch (error) {
+    //         console.error(error)
+    //     }
+    // }
+    
 
     return (
         <div className="flex justify-center items-center h-screen">
@@ -108,7 +123,7 @@ export function Login() {
                             {/* <Button onClick={handleSignup}>Submit</Button>
                              */}
 
-                             <Button
+                            <Button
                                 disabled={isLoading}
                                 onClick={handleSignup}
                             >
@@ -143,11 +158,9 @@ export function Login() {
                             </div>
 
                         </CardContent>
-                        <CardFooter>
-                            {/* <Button onClick={handleLogin}>Login</Button>
-                             */}
-
+                        <CardFooter className="flex flex-col">
                             <Button
+                                className="w-full"
                                 disabled={isLoading}
                                 onClick={handleLogin}
                             >
@@ -160,8 +173,12 @@ export function Login() {
                                     "Login"
                                 )}
                             </Button>
+                            <GoogleLoginPage className="w-full"/>
                         </CardFooter>
+
+
                     </Card>
+
                 </TabsContent>
 
             </Tabs>

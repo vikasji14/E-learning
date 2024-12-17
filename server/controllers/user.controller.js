@@ -2,8 +2,8 @@ import { User } from "../models/user.model.js"
 import { generateToken } from "../utils/tokengenerate.js"
 import bcrypt from "bcryptjs"
 import { deleteMediaFromCloudinary, uploadMedia } from "../utils/cloudinary.js"
-import geoip from "geoip-lite";
 import useragent from "useragent"; // Library to parse User-Agent header
+import { OAuth2Client } from "google-auth-library";
 
 
 export const register = async (req, res) => {
@@ -78,6 +78,95 @@ export const register = async (req, res) => {
 //     }
 // }
 
+
+
+export const googleLogin = async (req, res) => {
+    try {
+        const { code } = req.body;
+        // Initialize OAuth2 client with Google credentials
+        const oauth2client = new OAuth2Client(
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET,
+            process.env.GOOGLE_REDIRECT_URI // Add your redirect URI here
+        );
+
+        // Exchange `code` for tokens
+        const { tokens } = await oauth2client.getToken(code);
+        // Set credentials for the OAuth2 client
+        oauth2client.setCredentials(tokens);
+        // Fetch user info from Google
+        const googleRes = await fetch(
+            `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${tokens.access_token}`
+        );
+        const googleUser = await googleRes.json();
+        // console.log("User info fetched from Google:", user);
+
+        // Check if the user already exists in the database
+        const email = googleUser.email;
+        let existingUser = await User.findOne({ email });
+         // Extract IP address
+         const ipAddress = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+         // Call the geolocation API using fetch
+         const geoResponse = await fetch(`http://ip-api.com/json/${ipAddress}?fields=city,region,country,zip`);
+         const geoData = await geoResponse.json();
+         const { city, region, country, zip } = geoData;
+         const location = city ? `city: ${city},region: ${region},contry: ${country}, zip: ${zip}` : "Unknown";
+ 
+         // Parse User-Agent header
+         const agent = useragent.parse(req.headers["user-agent"]);
+         const os = agent.os.toString(); // Operating System details
+         const browser = agent.toAgent(); // Browser details
+ 
+         // Detect login method (for simplicity, assuming password-based login here)
+         const loginMethod = "Password";
+ 
+         // Add suspicious login flag (custom logic can be implemented)
+         const suspiciousFlag = location === "Unknown";
+ 
+         // Update login history
+         const updatedLoginDetails = {
+             count: (existingUser?.loginHistory?.count || 0) + 1, // Increment login count
+             ip: ipAddress, // IP address
+             location: location, // Location details
+             date: new Date(), // Timestamp of login
+             device: req.headers["user-agent"] || "Unknown", // Full User-Agent string
+             os: os, // Operating System details
+             browser: browser, // Browser details
+             sessionDuration: 0, // Default session duration; to be updated on logout
+             loginMethod: loginMethod, // Login method
+             suspiciousFlag: suspiciousFlag, // Suspicious login flag
+         };
+ 
+
+        if (existingUser) {
+            existingUser.loginHistory = updatedLoginDetails;
+            await existingUser.save();
+            return generateToken(res, existingUser, `Welcome back ${existingUser.name}`)
+        }
+
+        // User does not exist, create a new user in the database
+        const newUser = new User({
+            name: googleUser?.name,
+            email: googleUser?.email,
+            photoUrl: googleUser?.picture,
+            loginHistory: updatedLoginDetails
+        });
+        await newUser.save();
+        return generateToken(res, newUser, `Welcome ${googleUser?.name}`)
+
+    } catch (error) {
+        // Handle errors
+        console.error("Error during Google login:", error.message);
+        res.status(400).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+
+
+
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -106,47 +195,47 @@ export const login = async (req, res) => {
             });
         }
 
-         // Extract IP address
-         const ipAddress = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+        // Extract IP address
+        const ipAddress = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
         // Call the geolocation API using fetch
         const geoResponse = await fetch(`http://ip-api.com/json/${ipAddress}?fields=city,region,country,zip`);
         const geoData = await geoResponse.json();
         const { city, region, country, zip } = geoData;
-        const location = city?`city: ${city},region: ${region},contry: ${country}, zip: ${zip}` : "Unknown";
- 
-         // Parse User-Agent header
-         const agent = useragent.parse(req.headers["user-agent"]);
-         const os = agent.os.toString(); // Operating System details
-         const browser = agent.toAgent(); // Browser details
- 
-         // Detect login method (for simplicity, assuming password-based login here)
-         const loginMethod = "Password";
- 
-         // Add suspicious login flag (custom logic can be implemented)
-         const suspiciousFlag = location === "Unknown";
- 
-         // Update login history
-         const updatedLoginDetails = {
-             count: (user?.loginHistory?.count || 0) + 1, // Increment login count
-             ip: ipAddress, // IP address
-             location: location, // Location details
-             date: new Date(), // Timestamp of login
-             device: req.headers["user-agent"] || "Unknown", // Full User-Agent string
-             os: os, // Operating System details
-             browser: browser, // Browser details
-             sessionDuration: 0, // Default session duration; to be updated on logout
-             loginMethod: loginMethod, // Login method
-             suspiciousFlag: suspiciousFlag, // Suspicious login flag
-         };
- 
-         // Update user's login history in the database
-         await User.findByIdAndUpdate(
-             user._id,
-             {
-                 $set: { loginHistory: updatedLoginDetails },
-             },
-             { new: true } // Return updated user document
-         );
+        const location = city ? `city: ${city},region: ${region},contry: ${country}, zip: ${zip}` : "Unknown";
+
+        // Parse User-Agent header
+        const agent = useragent.parse(req.headers["user-agent"]);
+        const os = agent.os.toString(); // Operating System details
+        const browser = agent.toAgent(); // Browser details
+
+        // Detect login method (for simplicity, assuming password-based login here)
+        const loginMethod = "Password";
+
+        // Add suspicious login flag (custom logic can be implemented)
+        const suspiciousFlag = location === "Unknown";
+
+        // Update login history
+        const updatedLoginDetails = {
+            count: (user?.loginHistory?.count || 0) + 1, // Increment login count
+            ip: ipAddress, // IP address
+            location: location, // Location details
+            date: new Date(), // Timestamp of login
+            device: req.headers["user-agent"] || "Unknown", // Full User-Agent string
+            os: os, // Operating System details
+            browser: browser, // Browser details
+            sessionDuration: 0, // Default session duration; to be updated on logout
+            loginMethod: loginMethod, // Login method
+            suspiciousFlag: suspiciousFlag, // Suspicious login flag
+        };
+
+        // Update user's login history in the database
+        await User.findByIdAndUpdate(
+            user._id,
+            {
+                $set: { loginHistory: updatedLoginDetails },
+            },
+            { new: true } // Return updated user document
+        );
         await user.save(); // Save the user details
 
         // Generate the token and send response
@@ -251,29 +340,29 @@ export const updateProfile = async (req, res) => {
 };
 
 export const bioChange = async (req, res) => {
-        try{
-            const user = await User.findById(req._id).select("-password")
-            if (!user) {
-                return res.status(400).json({
-                    success: false,
-                    message: "User not found"
-                })
-            }
-            const { bio } = req.body
-            let data = await User.findByIdAndUpdate(req._id, {bio: bio}, {
-                new: true, // Return the updated document
-            }).select("-password"); // Exclude the password field
-            return res.status(200).json({
-                success: true,
-                bio: data.bio,
-                message: "Bio changed successfully.",
-            });
-        }catch (error) {
-            console.error("Error updating bio:", error);
-            return res.status(500).json({
+    try {
+        const user = await User.findById(req._id).select("-password")
+        if (!user) {
+            return res.status(400).json({
                 success: false,
-                message: "Failed to update bio.",
-            });
-        }   
+                message: "User not found"
+            })
+        }
+        const { bio } = req.body
+        let data = await User.findByIdAndUpdate(req._id, { bio: bio }, {
+            new: true, // Return the updated document
+        }).select("-password"); // Exclude the password field
+        return res.status(200).json({
+            success: true,
+            bio: data.bio,
+            message: "Bio changed successfully.",
+        });
+    } catch (error) {
+        console.error("Error updating bio:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update bio.",
+        });
+    }
 
 }

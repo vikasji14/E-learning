@@ -37,6 +37,25 @@ export const loginUser = async (user) => {
     }
 }
 
+export const googleLogin = async (token) => {
+    // console.log(token.code)
+    try {
+        const response = await fetch(`${url}/user/googleLogin`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                'api-key': apiKey ,
+            },
+            body: JSON.stringify(token),
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+
 export const userLoggedOut = async () => {
     try {
         localStorage.removeItem("token");

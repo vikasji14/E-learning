@@ -55,6 +55,7 @@ const Profile = () => {
       localStorage.setItem("photoUrl", data?.user.photoUrl)
     } else {
       toast.error(data.message)
+
     }
     setUpdateUserIsLoading(false);
     userData();

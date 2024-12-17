@@ -6,7 +6,9 @@ import { RouterProvider } from 'react-router';
 import Courses from './pages/student/Courses';
 import MyLearning from './pages/student/MyLearning';
 import Profile from './pages/student/Proffile';
-import { AuthenticatedUser,ProtectedRoute } from './components/ProtectRoutes';
+import { AuthenticatedUser, ProtectedRoute } from './components/ProtectRoutes';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
 
 const appRouter = createBrowserRouter([
   {
@@ -22,7 +24,9 @@ const appRouter = createBrowserRouter([
       },
       {
         path: 'login',
-        element: <AuthenticatedUser> <Login /></AuthenticatedUser>
+        element: <GoogleOAuthProvider clientId={import.meta.env?.VITE_GOOGLE_CLIENT_ID}>
+          <AuthenticatedUser> <Login /></AuthenticatedUser>
+        </GoogleOAuthProvider>
       },
       {
         path: "my-learning",
@@ -47,8 +51,8 @@ const appRouter = createBrowserRouter([
 
 function App() {
 
-
   return (
+
     <>
       <main>
         <RouterProvider router={appRouter} />

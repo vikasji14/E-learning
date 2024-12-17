@@ -32,6 +32,10 @@ app.use(checkApi);
 //apis
 app.use("/api/v1/user", userRouter)
 
+app.get('/',(req,res) =>{
+    res.send('running server')
+})
+
 
 
 app.listen(process.env.PORT, ()=>{
